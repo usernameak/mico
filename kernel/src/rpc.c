@@ -25,3 +25,21 @@ micoSXError micoKRSend(const void *buf, size_t size) {
 
     return micoSX_OK;
 }
+
+micoSXError micoKRSendWithResponse(
+    const void *buf, size_t size,
+    void *responseBuf, size_t *responseSize) {
+    if (size > RPC_SEND_BUF_SIZE) {
+        // TODO: segment request and remove buffer limit later
+        return micoSX_BUFFER_TOO_BIG;
+    }
+
+    memcpy(rpcSendBuf, buf, size);
+    *rpcSendSizeRegister = size;
+    *rpcSendRegister     = 0x1;
+
+    *responseSize = *rpcSendSizeRegister;
+    memcpy(responseBuf, rpcSendBuf, *responseSize);
+
+    return micoSX_OK;
+}

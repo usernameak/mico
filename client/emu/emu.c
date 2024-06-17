@@ -47,6 +47,12 @@ static uint64_t rpcRegReadCallback(
     uc_engine *uc, uint64_t offset,
     unsigned size, void *user_data) {
 
+    micoCEEmu *emu = user_data;
+
+    if (offset == 0) {
+        return emu->rpcRequestSize;
+    }
+
     return 0;
 }
 
@@ -68,7 +74,7 @@ static void rpcRegWriteCallback(
                 resp->deviceCount = emu->deviceCount;
 
                 micoSEDevEnumRecord *record = resp->devices;
-                micoCEEmuDevice *edev = emu->devices;
+                micoCEEmuDevice *edev       = emu->devices;
                 while (edev) {
                     record->serviceID    = edev->serviceID;
                     record->deviceTypeID = edev->deviceTypeID;
@@ -76,6 +82,8 @@ static void rpcRegWriteCallback(
                     edev = edev->next;
                     record++;
                 }
+
+                emu->rpcRequestSize = (char *) record - emu->rpcBuffer;
             }
         }
     }

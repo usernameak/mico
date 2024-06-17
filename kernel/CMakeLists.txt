@@ -3,7 +3,9 @@ cmake_minimum_required(VERSION 3.17)
 add_executable(micokernel
         src/kmain.c
         inc/micok/rpc.h
-        src/rpc.c)
+        src/rpc.c
+        inc/micok/emu.h
+        src/emu.c)
 
 target_include_directories(micokernel PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/inc")
 

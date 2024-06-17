@@ -1,17 +1,10 @@
 #include <micok/rpc.h>
 #include <micos/rpc.h>
-
-#define micoKMTestServiceID 0x00000001
-#define micoKMTestRequestType 0x00000001
-
-struct micoKMTestRequest {
-    micoSRHeader header;
-};
-
+#include <micos/emu.h>
 void micoKMain() {
-    struct micoKMTestRequest req;
-    req.header.serviceID   = micoKMTestServiceID;
-    req.header.requestType = micoKMTestRequestType;
+    micoSRHeader req;
+    req.serviceID   = micoSR_SERVICE_EMU;
+    req.requestType = micoSE_REQ_DEVENUM;
 
     micoKRSend(&req, sizeof(req));
 

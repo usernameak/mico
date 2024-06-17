@@ -1,4 +1,5 @@
 #include "emu.h"
+#include "micos/emu.h"
 
 #include "../memory/hostmem.h"
 #include <micos/rpc.h>
@@ -20,6 +21,7 @@ typedef struct micoCEEmuIOBuffer {
 
 typedef struct micoCEEmuDevice {
     uint32_t deviceTypeID;
+    uint32_t serviceID;
     micoCEDevice *device;
 
     struct micoCEEmuDevice *next;
@@ -27,9 +29,14 @@ typedef struct micoCEEmuDevice {
 
 struct micoCEEmu {
     uc_engine *uc;
+
     micoCEEmuIOBuffer *ioBuffers;
-    micoCEEmuDevice *devices;
     uint32_t nextIoGuestAddr;
+
+    micoCEEmuDevice *devices;
+    uint32_t nextDevServiceID;
+    uint32_t deviceCount;
+
     void *ram;
 
     char rpcBuffer[16384];
@@ -54,7 +61,23 @@ static void rpcRegWriteCallback(
         emu->rpcRequestSize = value;
     } else if (offset == 4) {
         micoSRHeader *rpcHeader = (micoSRHeader *)emu->rpcBuffer;
-        printf("%08x %08x\n", rpcHeader->serviceID, rpcHeader->requestType);
+        if (rpcHeader->serviceID == micoSR_SERVICE_EMU) {
+            if (rpcHeader->requestType == micoSE_REQ_DEVENUM) {
+                micoSEDevEnumResponse *resp = (micoSEDevEnumResponse *)&emu->rpcBuffer[0];
+
+                resp->deviceCount = emu->deviceCount;
+
+                micoSEDevEnumRecord *record = resp->devices;
+                micoCEEmuDevice *edev = emu->devices;
+                while (edev) {
+                    record->serviceID    = edev->serviceID;
+                    record->deviceTypeID = edev->deviceTypeID;
+
+                    edev = edev->next;
+                    record++;
+                }
+            }
+        }
     }
 }
 
@@ -80,6 +103,10 @@ micoSXError micoCEEmuCreate(micoCEEmu **outEmu) {
 
     emu->ioBuffers       = NULL;
     emu->nextIoGuestAddr = 0xF0000000;
+
+    emu->devices          = NULL;
+    emu->nextDevServiceID = 0x80000000;
+    emu->deviceCount      = 0;
 
     *outEmu = emu;
 
@@ -152,7 +179,7 @@ void *micoCEEmuGetRAM(micoCEEmu *emu) {
 
 micoSXError micoCEEmuAttachDevice(micoCEEmu *emu, micoCEDevice *dev) {
     micoSXError err = dev->vtbl->Initialize(dev, emu);
-    if (micoSX_IS_OK(err)) return err;
+    if (!micoSX_IS_OK(err)) return err;
 
     micoCEEmuDevice *edev = malloc(sizeof(micoCEEmuDevice));
     if (edev == NULL) {
@@ -161,10 +188,12 @@ micoSXError micoCEEmuAttachDevice(micoCEEmu *emu, micoCEDevice *dev) {
     }
 
     edev->deviceTypeID = dev->vtbl->QueryDeviceTypeID(dev);
-    edev->device = dev;
+    edev->device       = dev;
+    edev->serviceID    = emu->nextDevServiceID++;
 
-    edev->next = emu->devices;
+    edev->next   = emu->devices;
     emu->devices = edev;
+    emu->deviceCount++;
 
     return micoSX_OK;
 }

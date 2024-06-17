@@ -4,8 +4,12 @@ add_executable(micokernel
         src/kmain.c
         inc/micok/rpc.h
         src/rpc.c
-        inc/micok/emu.h
-        src/emu.c)
+        inc/micok/emu/emu.h
+        src/emu.c
+        inc/micok/emu/device.h
+        src/device.c
+        inc/micok/display/dpydev.h
+        src/dpydev.c)
 
 target_include_directories(micokernel PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/inc")
 

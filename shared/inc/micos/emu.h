@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stdint.h>
+
 #define micoSE_DEVICE_TYPE_DISPLAY 0x00000001
 
 typedef struct micoSEDevEnumRecord {

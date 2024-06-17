@@ -33,6 +33,8 @@ SECTIONS {
 
     . = ALIGN(4);
 
+    PROVIDE (end = .);
+
     /* Stabs debugging sections.  */
     .stab          0 : { *(.stab) }
     .stabstr       0 : { *(.stabstr) }

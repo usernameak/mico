@@ -28,6 +28,6 @@ set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
 set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
 set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ONLY)
 
-set(CMAKE_C_FLAGS "-fno-exceptions -marm -mthumb-interwork -march=armv6 -mtune=arm1136j-s -specs=nosys.specs -fno-pie -no-pie")
+set(CMAKE_C_FLAGS "-fno-exceptions -mthumb -mthumb-interwork -march=armv6 -mtune=arm1136j-s -specs=nosys.specs -fno-pie -no-pie")
 set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -fno-use-cxa-atexit -fno-rtti")
 set(CMAKE_EXE_LINKER_FLAGS "-nostartfiles -static-libgcc -fno-pie -no-pie")

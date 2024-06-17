@@ -1,9 +1,15 @@
-#include <micok/emu.h>
+#include <micok/emu/emu.h>
 
-void micoKMain() {
+__attribute__((noreturn))
+void micoKMainThumb() {
     micoKESetupDevices();
 
     while (1) {
         // do nothing
     }
+}
+
+__attribute__((target("arm"), noreturn))
+void micoKMain() {
+    micoKMainThumb();
 }

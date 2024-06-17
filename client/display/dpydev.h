@@ -3,6 +3,6 @@
 #include "dpy.h"
 #include "../emu/device.h"
 
-#include <micos/err.h>
+#include <micos/xerr.h>
 
-micoSEError micoCDDeviceCreate(micoCEDevice **pdev, micoCDDisplay *dpy);
+micoSXError micoCDDeviceCreate(micoCEDevice **pdev, micoCDDisplay *dpy);

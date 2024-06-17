@@ -1,6 +1,7 @@
 #include "dpydev.h"
 
 #include "../emu/emu.h"
+#include <micos/emu.h>
 
 #include <stdlib.h>
 
@@ -13,10 +14,10 @@ typedef struct micoCDDevice {
 
 static const micoCEDeviceVtbl g_micoCDDeviceVtbl;
 
-micoSEError micoCDDeviceCreate(micoCEDevice **pdev, micoCDDisplay *dpy) {
+micoSXError micoCDDeviceCreate(micoCEDevice **pdev, micoCDDisplay *dpy) {
     micoCDDevice *dev = malloc(sizeof(micoCDDevice));
     if (dev == NULL) {
-        return micoSE_OUT_OF_MEMORY;
+        return micoSX_OUT_OF_MEMORY;
     }
 
     dev->vtbl = &g_micoCDDeviceVtbl;
@@ -24,14 +25,14 @@ micoSEError micoCDDeviceCreate(micoCEDevice **pdev, micoCDDisplay *dpy) {
 
     *pdev = (micoCEDevice *)dev;
 
-    return micoSE_OK;
+    return micoSX_OK;
 }
 
 static void micoCDDeviceDestroy(micoCEDevice *dev) {
     free(dev);
 }
 
-static micoSEError micoCDDeviceInitialize(micoCEDevice *dev_, micoCEEmu *emu) {
+static micoSXError micoCDDeviceInitialize(micoCEDevice *dev_, micoCEEmu *emu) {
     micoCDDevice *dev = (micoCDDevice *)dev_;
 
     int width, height;
@@ -40,7 +41,13 @@ static micoSEError micoCDDeviceInitialize(micoCEDevice *dev_, micoCEEmu *emu) {
     return micoCEEmuMapIOBuffer(emu, width * height * 3, &dev->dpyBufferInfo);
 }
 
+
+static uint32_t micoCDDeviceQueryDeviceTypeID(micoCEDevice *dev) {
+    return micoSE_DEVICE_TYPE_DISPLAY;
+}
+
 static const micoCEDeviceVtbl g_micoCDDeviceVtbl = {
     &micoCDDeviceDestroy,
-    &micoCDDeviceInitialize
+    &micoCDDeviceInitialize,
+    &micoCDDeviceQueryDeviceTypeID
 };

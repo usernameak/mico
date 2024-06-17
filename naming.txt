@@ -1,0 +1,8 @@
+micoS - shared modules
+micoC - client modules
+micoK - kernel modules
+     D - display
+     E - emulation
+     M - memory
+     R - RPC
+     X - exceptions and errors

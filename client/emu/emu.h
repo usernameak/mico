@@ -6,7 +6,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include <micos/err.h>
+#include <micos/xerr.h>
 
 typedef struct micoCEEmuIOBufferInfo {
     void *ptr;
@@ -16,12 +16,12 @@ typedef struct micoCEEmuIOBufferInfo {
 
 typedef struct micoCEEmu micoCEEmu;
 
-micoSEError micoCEEmuCreate(micoCEEmu **outEmu);
+micoSXError micoCEEmuCreate(micoCEEmu **outEmu);
 void micoCEEmuDestroy(micoCEEmu *emu);
 
 void *micoCEEmuGetRAM(micoCEEmu *emu);
 
-micoSEError micoCEEmuAttachDevice(micoCEEmu *emu, micoCEDevice *dev);
-micoSEError micoCEEmuMapIOBuffer(micoCEEmu *emu, size_t size, micoCEEmuIOBufferInfo *info);
+micoSXError micoCEEmuAttachDevice(micoCEEmu *emu, micoCEDevice *dev);
+micoSXError micoCEEmuMapIOBuffer(micoCEEmu *emu, size_t size, micoCEEmuIOBufferInfo *info);
 
-micoSEError micoCEEmuBoot(micoCEEmu *emu);
+micoSXError micoCEEmuBoot(micoCEEmu *emu);

@@ -13,15 +13,15 @@ static void *const rpcSendBuf = (void *)0xF0010000;
 
 #define RPC_SEND_BUF_SIZE 0x10000
 
-micoKEError micoKRSend(const void *buf, size_t size) {
+micoSXError micoKRSend(const void *buf, size_t size) {
     if (size > RPC_SEND_BUF_SIZE) {
         // TODO: segment request and remove buffer limit later
-        return micoKE_BUFFER_TOO_BIG;
+        return micoSX_BUFFER_TOO_BIG;
     }
 
     memcpy(rpcSendBuf, buf, size);
     *rpcSendSizeRegister = size;
     *rpcSendRegister     = 0x1;
 
-    return micoKE_OK;
+    return micoSX_OK;
 }

@@ -2,6 +2,6 @@
 
 #include <stddef.h>
 
-#include <micos/err.h>
+#include <micos/xerr.h>
 
-micoSEError micoKRSend(const void *buf, size_t size);
+micoSXError micoKRSend(const void *buf, size_t size);

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <micos/err.h>
+#include <micos/xerr.h>
 
 typedef struct micoCEDeviceVtbl micoCEDeviceVtbl;
 
@@ -11,6 +11,7 @@ typedef struct micoCEDevice {
 } micoCEDevice;
 
 struct micoCEDeviceVtbl {
-    void (*destroy)(micoCEDevice *dev);
-    micoSEError (*initialize)(micoCEDevice *dev, micoCEEmu *emu);
+    void (*Destroy)(micoCEDevice *dev);
+    micoSXError (*Initialize)(micoCEDevice *dev, micoCEEmu *emu);
+    uint32_t (*QueryDeviceTypeID)(micoCEDevice *dev);
 };

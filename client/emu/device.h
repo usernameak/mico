@@ -13,5 +13,11 @@ typedef struct micoCEDevice {
 struct micoCEDeviceVtbl {
     void (*Destroy)(micoCEDevice *dev);
     micoSXError (*Initialize)(micoCEDevice *dev, micoCEEmu *emu);
+
     uint32_t (*QueryDeviceTypeID)(micoCEDevice *dev);
+    micoSXError (*ServiceRPC)(
+        micoCEDevice *dev,
+        uint32_t requestType,
+        void *rpcBuffer,
+        size_t *bufferSize);
 };

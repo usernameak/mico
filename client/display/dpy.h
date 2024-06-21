@@ -6,3 +6,4 @@ micoCDDisplay *micoCDCreateDisplay(int width, int height);
 void micoCDDestroyDisplay(micoCDDisplay *display);
 
 void micoCDGetDimensions(micoCDDisplay *dpy, int *pwidth, int *pheight);
+void micoCDBlitBuffer(micoCDDisplay *dpy, const void *buffer);

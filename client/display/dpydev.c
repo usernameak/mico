@@ -1,6 +1,8 @@
 #include "dpydev.h"
 
 #include "../emu/emu.h"
+
+#include <micos/display.h>
 #include <micos/emu.h>
 
 #include <stdlib.h>
@@ -46,8 +48,33 @@ static uint32_t micoCDDeviceQueryDeviceTypeID(micoCEDevice *dev) {
     return micoSE_DEVICE_TYPE_DISPLAY;
 }
 
+static micoSXError micoCDDeviceServiceRPC(
+    micoCEDevice *dev_,
+    uint32_t requestType,
+    void *rpcBuffer,
+    size_t *bufferSize) {
+
+    micoCDDevice *dev = (micoCDDevice *)dev_;
+
+    if (requestType == micoSD_REQ_QUERY_INFO) {
+        micoSDDisplayInfo *displayInfo = rpcBuffer;
+
+        int width, height;
+        micoCDGetDimensions(dev->dpy, &width, &height);
+        displayInfo->width          = width;
+        displayInfo->height         = height;
+        displayInfo->guestBufferPtr = dev->dpyBufferInfo.guestAddr;
+
+        *bufferSize = sizeof(micoSDDisplayInfo);
+    } else if (requestType == micoSD_REQ_REFRESH_DISPLAY) {
+        micoCDBlitBuffer(dev->dpy, dev->dpyBufferInfo.ptr);
+    }
+    return micoSX_OK;
+}
+
 static const micoCEDeviceVtbl g_micoCDDeviceVtbl = {
     &micoCDDeviceDestroy,
     &micoCDDeviceInitialize,
-    &micoCDDeviceQueryDeviceTypeID
+    &micoCDDeviceQueryDeviceTypeID,
+    &micoCDDeviceServiceRPC
 };

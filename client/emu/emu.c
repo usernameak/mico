@@ -2,6 +2,8 @@
 #include "micos/emu.h"
 
 #include "../memory/hostmem.h"
+#include "../os/event.h"
+
 #include <micos/rpc.h>
 
 #include <unicorn/unicorn.h>
@@ -56,6 +58,26 @@ static uint64_t rpcRegReadCallback(
     return 0;
 }
 
+static void rpcServiceEmuRequest(micoCEEmu *emu, uint32_t requestType) {
+    if (requestType == micoSE_REQ_DEVENUM) {
+        micoSEDevEnumResponse *resp = (micoSEDevEnumResponse *)&emu->rpcBuffer[0];
+
+        resp->deviceCount = emu->deviceCount;
+
+        micoSEDevEnumRecord *record = resp->devices;
+        micoCEEmuDevice *edev       = emu->devices;
+        while (edev) {
+            record->serviceID    = edev->serviceID;
+            record->deviceTypeID = edev->deviceTypeID;
+
+            edev = edev->next;
+            record++;
+        }
+
+        emu->rpcRequestSize = (char *)record - emu->rpcBuffer;
+    }
+}
+
 static void rpcRegWriteCallback(
     uc_engine *uc, uint64_t offset,
     unsigned size, uint64_t value,
@@ -66,27 +88,33 @@ static void rpcRegWriteCallback(
     if (offset == 0) {
         emu->rpcRequestSize = value;
     } else if (offset == 4) {
-        micoSRHeader *rpcHeader = (micoSRHeader *)emu->rpcBuffer;
-        if (rpcHeader->serviceID == micoSR_SERVICE_EMU) {
-            if (rpcHeader->requestType == micoSE_REQ_DEVENUM) {
-                micoSEDevEnumResponse *resp = (micoSEDevEnumResponse *)&emu->rpcBuffer[0];
-
-                resp->deviceCount = emu->deviceCount;
-
-                micoSEDevEnumRecord *record = resp->devices;
-                micoCEEmuDevice *edev       = emu->devices;
-                while (edev) {
-                    record->serviceID    = edev->serviceID;
-                    record->deviceTypeID = edev->deviceTypeID;
-
-                    edev = edev->next;
-                    record++;
+        if (value == 1) { // rpc send
+            micoSRHeader *rpcHeader = (micoSRHeader *)emu->rpcBuffer;
+            if (rpcHeader->serviceID == micoSR_SERVICE_EMU) {
+                rpcServiceEmuRequest(emu, rpcHeader->requestType);
+            } else {
+                micoCEEmuDevice *dev = emu->devices;
+                while (dev) {
+                    if (rpcHeader->serviceID == dev->serviceID) {
+                        dev->device->vtbl->ServiceRPC(
+                            dev->device,
+                            rpcHeader->requestType,
+                            emu->rpcBuffer,
+                            &emu->rpcRequestSize);
+                    }
+                    dev = dev->next;
                 }
-
-                emu->rpcRequestSize = (char *) record - emu->rpcBuffer;
             }
+        } else if (value == 2) { // release to event loop
+            micoCSEventWait();
         }
     }
+}
+
+static bool memFailCallback(uc_engine *uc, uc_mem_type type,
+    uint64_t address, int size, int64_t value,
+    void *user_data) {
+    return false;
 }
 
 micoSXError micoCEEmuCreate(micoCEEmu **outEmu) {
@@ -117,6 +145,14 @@ micoSXError micoCEEmuCreate(micoCEEmu **outEmu) {
     emu->deviceCount      = 0;
 
     *outEmu = emu;
+
+    uc_hook unmappedHook;
+    err = uc_hook_add(uc, &unmappedHook, UC_HOOK_MEM_UNMAPPED, &memFailCallback, emu, 0, UINT64_MAX);
+    if (err != UC_ERR_OK) {
+        fprintf(stderr, "uc_hook_add(UC_HOOK_MEM_UNMAPPED) failed: %s\n", uc_strerror(err));
+        error = micoSX_SYSTEM_ERROR;
+        goto fail;
+    }
 
     uc_mmio_map(uc,
         0xF0000000, 0x10000,
@@ -213,7 +249,7 @@ micoSXError micoCEEmuMapIOBuffer(micoCEEmu *emu, size_t size, micoCEEmuIOBufferI
     if (hostPages == NULL) return micoSX_OUT_OF_MEMORY;
 
     uint32_t guestAddr = emu->nextIoGuestAddr - alignedSize;
-    uc_err status      = uc_mem_map_ptr(emu->uc, guestAddr, alignedSize, UC_PROT_READ | UC_PROT_WRITE, guestAddr);
+    uc_err status      = uc_mem_map_ptr(emu->uc, guestAddr, alignedSize, UC_PROT_READ | UC_PROT_WRITE, hostPages);
     if (status != UC_ERR_OK) {
         micoCMReleaseHostPages(hostPages);
         return micoSX_MAP_FAILED;

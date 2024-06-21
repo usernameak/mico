@@ -1,3 +1,5 @@
+#include "micok/rpc.h"
+
 #include <micok/emu/emu.h>
 
 __attribute__((noreturn))
@@ -5,7 +7,7 @@ void micoKMainThumb() {
     micoKESetupDevices();
 
     while (1) {
-        // do nothing
+        micoKREventWait();
     }
 }
 

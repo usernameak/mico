@@ -43,3 +43,8 @@ micoSXError micoKRSendWithResponse(
 
     return micoSX_OK;
 }
+
+micoSXError micoKREventWait() {
+    *rpcSendRegister = 0x2;
+    return micoSX_OK;
+}

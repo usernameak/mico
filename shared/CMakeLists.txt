@@ -5,6 +5,7 @@ add_library(micoshared STATIC
         inc/micos/xerr.h
         inc/micos/rpc.h
         inc/micos/memory.h
-        src/memory/memutil.c)
+        src/memory/memutil.c
+        inc/micos/display.h)
 
 target_include_directories(micoshared PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/inc")

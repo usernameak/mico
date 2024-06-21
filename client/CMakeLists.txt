@@ -14,6 +14,8 @@ add_executable(micoclient main.c
         emu/loader.h
         display/dpydev.h
         display/dpydev.c
+        os/event.c
+        os/event.h
 )
 
 if(WIN32)

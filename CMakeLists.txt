@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.17)
-project(mico C)
+project(mico C ASM)
 
 set(CMAKE_C_STANDARD 99)
 

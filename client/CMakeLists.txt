@@ -3,7 +3,9 @@ cmake_minimum_required(VERSION 3.17)
 find_path(UNICORN_INCLUDE_DIRS unicorn/unicorn.h)
 find_library(UNICORN_LIBRARIES unicorn)
 
-add_executable(micoclient main.c
+add_executable(micoclient
+        app.manifest
+        main.c
         memory/hostmem.h
         display/dpy_win.c
         display/dpy.h

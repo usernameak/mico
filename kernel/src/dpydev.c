@@ -1,9 +1,8 @@
-#include "micos/display.h"
-
-
 #include <micok/display/dpydev.h>
 
 #include <stdlib.h>
+
+#include <micos/display.h>
 
 #include <micok/rpc.h>
 #include <micok/emu/device.h>
@@ -11,11 +10,11 @@
 typedef struct micoKDDevice {
     const micoKEDeviceVtbl *vtbl;
     uint32_t serviceID;
-    uint32_t width, height;
-    unsigned char *displayBuffer;
+    micoKDFramebuffer fb;
 } micoKDDevice;
 
 static const micoKEDeviceVtbl g_micoKDDeviceVtbl;
+static micoKEDevice *g_defaultDisplayDevice = NULL;
 
 micoKEDevice *micoKDDeviceCreate(const micoKEDeviceDriver *driver, const micoSEDevEnumRecord *enumRecord) {
     micoKDDevice *device = malloc(sizeof(micoKDDevice));
@@ -40,27 +39,39 @@ micoKEDevice *micoKDDeviceCreate(const micoKEDeviceDriver *driver, const micoSED
     }
 
     micoSDDisplayInfo *dpyinfo = (micoSDDisplayInfo *)respBuf;
-    device->width              = dpyinfo->width;
-    device->height             = dpyinfo->height;
-    device->displayBuffer      = (unsigned char *)dpyinfo->guestBufferPtr;
+    device->fb.width           = dpyinfo->width;
+    device->fb.height          = dpyinfo->height;
+    device->fb.displayBuffer   = (unsigned char *)dpyinfo->guestBufferPtr;
 
-    for (int y = 0; y < device->height; y++) {
-        for (int x = 0; x < device->width; x++) {
-            device->displayBuffer[(y * device->width + x) * 3] = 255;
-            device->displayBuffer[(y * device->width + x) * 3 + 1] = 0;
-            device->displayBuffer[(y * device->width + x) * 3 + 2] = 255;
-        }
+    if (g_defaultDisplayDevice == NULL) {
+        g_defaultDisplayDevice = (micoKEDevice *)device;
     }
-
-    micoSRHeader reqBlit;
-    reqBlit.serviceID   = enumRecord->serviceID;
-    reqBlit.requestType = micoSD_REQ_REFRESH_DISPLAY;
-    micoKRSend(&reqBlit, sizeof(reqBlit));
 
     return (micoKEDevice *)device;
 }
 
+micoKDFramebuffer *micoKDDeviceGetFramebuffer(micoKEDevice *dev_) {
+    micoKDDevice *dev = (micoKDDevice *)dev_;
+    return &dev->fb;
+}
+
+micoSXError micoKDDeviceRequestBlit(micoKEDevice *dev_) {
+    micoKDDevice *dev = (micoKDDevice *)dev_;
+
+    micoSRHeader reqBlit;
+    reqBlit.serviceID   = dev->serviceID;
+    reqBlit.requestType = micoSD_REQ_REFRESH_DISPLAY;
+    return micoKRSend(&reqBlit, sizeof(reqBlit));
+}
+
+micoKEDevice *micoKDDeviceGetDefault() {
+    return g_defaultDisplayDevice;
+}
+
 void micoKDDeviceDestroy(micoKEDevice *device) {
+    if (g_defaultDisplayDevice == device) {
+        g_defaultDisplayDevice = NULL;
+    }
     free(device);
 }
 

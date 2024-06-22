@@ -1,7 +1,9 @@
 SECTIONS {
     . = 0x1000;
+
     .text : {
-        *(.text.micoKMain) /* must start with entry point */
+        KEEP(*(.isr_vector))
+        . = ALIGN(4);
         *(.text .text.* .gnu.linkonce.t.* .glue_7t .glue_7 .vfp11_veneer .v4_bx)
     }
 
@@ -80,6 +82,7 @@ SECTIONS {
     .debug_str_offsets      0 : { *(.debug_str_offsets) }
     .debug_loclists      0 : { *(.debug_loclists) }
     .debug_rnglists      0 : { *(.debug_rnglists) }
+    .debug_line_str      0 : { *(.debug_line_str) }
     .ARM.attributes 0 : {
         KEEP (*(.ARM.attributes))
         KEEP (*(.gnu.attributes))

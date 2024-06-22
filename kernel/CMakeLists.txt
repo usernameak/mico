@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.17)
 
 add_executable(micokernel
+        src/boot.S
         src/kmain.c
         inc/micok/rpc.h
         src/rpc.c
@@ -9,7 +10,10 @@ add_executable(micokernel
         inc/micok/emu/device.h
         src/device.c
         inc/micok/display/dpydev.h
-        src/dpydev.c)
+        src/dpydev.c
+        inc/micok/display/dpytext.h
+        src/dpytext.c
+        inc/micok/version.h)
 
 target_include_directories(micokernel PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/inc")
 
